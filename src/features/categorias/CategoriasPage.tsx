@@ -163,7 +163,18 @@ export function CategoriasPage() {
         </ul>
         {excluirMut.error && (
           <div className="mt-2 text-sm text-red-400 bg-red-900/20 border border-red-500/40 rounded p-2">
-            {String(excluirMut.error)}
+            {(() => {
+              const raw =
+                ((excluirMut.error as any)?.response?.data?.erro as string) ??
+                (excluirMut.error as any)?.message ??
+                String(excluirMut.error);
+              const is500 = /Internal Server Error|status code 500/i.test(
+                String(raw)
+              );
+              return is500
+                ? "Não é possível excluir a categoria pois existem produtos vinculados."
+                : raw;
+            })()}
           </div>
         )}
       </div>
