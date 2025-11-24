@@ -106,12 +106,10 @@ export function RelatoriosPage() {
                 <table className="min-w-full text-sm text-slate-200">
                   <thead className="bg-slate-900/40">
                     <tr>
-                      <th className="text-right px-3 py-2">ID</th>
                       <th className="text-left px-3 py-2">Produto</th>
                       <th className="text-left px-3 py-2">Unidade</th>
                       <th className="text-left px-3 py-2">Categoria</th>
                       <th className="text-right px-3 py-2">Preço Unitário</th>
-                      <th className="text-right px-3 py-2">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -126,10 +124,9 @@ export function RelatoriosPage() {
                       )
                       .map((item: any) => (
                         <tr
-                          key={item.id}
+                          key={item?.id ?? item?.produtoId ?? item?.nome}
                           className="border-t border-slate-700/50"
                         >
-                          <td className="px-3 py-2 text-right">#{item.id}</td>
                           <td className="px-3 py-2">{item.nome}</td>
                           <td className="px-3 py-2">{item.unidade}</td>
                           <td className="px-3 py-2">
@@ -137,14 +134,6 @@ export function RelatoriosPage() {
                           </td>
                           <td className="px-3 py-2 text-right">
                             R$ {Number(item.precoUnitario).toFixed(2)}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            <Link
-                              to={`/produtos/${item.id}`}
-                              className="inline-block px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs transition-colors"
-                            >
-                              Ver produto →
-                            </Link>
                           </td>
                         </tr>
                       ))}
