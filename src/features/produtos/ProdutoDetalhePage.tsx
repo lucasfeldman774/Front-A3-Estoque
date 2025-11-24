@@ -76,12 +76,8 @@ export function ProdutoDetalhePage() {
           <button
             className="btn bg-red-600 hover:bg-red-500 focus:ring-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => excluirMut.mutate()}
-            disabled={excluirMut.isPending || (data.quantidade ?? 0) > 0}
-            title={
-              (data.quantidade ?? 0) > 0
-                ? "Não é possível excluir um produto com movimentações/estoque > 0"
-                : ""
-            }
+            disabled={excluirMut.isPending}
+            title="Excluir produto"
           >
             Excluir
           </button>
