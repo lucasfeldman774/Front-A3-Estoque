@@ -5,20 +5,12 @@ import {
   topMovimentacoes as topMovimentacoesApi,
 } from "./movimentacaoService";
 
-type MovimentoListItem = {
-  produtoId: number;
-  quantidade: number;
-  tipo: TipoMovimentacao;
-  dataHora: string;
-};
-
 type TipoMovimentacao = "ENTRADA" | "SAIDA";
 
 export function MovimentacoesPage() {
   const [produtoId, setProdutoId] = useState<number>(0);
   const [quantidade, setQuantidade] = useState<number>(0);
   const [tipo, setTipo] = useState<TipoMovimentacao>("ENTRADA");
-  const [recentes, setRecentes] = useState<MovimentoListItem[]>([]);
 
   const { data: top, isLoading: topLoading } = useQuery({
     queryKey: ["top-mov"],
@@ -30,13 +22,6 @@ export function MovimentacoesPage() {
     onSuccess: () => {
       setProdutoId(0);
       setQuantidade(0);
-      const item: MovimentoListItem = {
-        produtoId,
-        quantidade,
-        tipo,
-        dataHora: new Date().toISOString(),
-      };
-      setRecentes((prev) => [item, ...prev].slice(0, 10));
     },
   });
 
@@ -247,56 +232,6 @@ export function MovimentacoesPage() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Últimas movimentações */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
-          <h3 className="text-xl font-semibold text-white">
-            Últimas movimentações
-          </h3>
-        </div>
-        <div className="p-6">
-          {recentes.length === 0 && (
-            <p className="text-gray-400 text-sm">
-              Nenhuma movimentação registrada nesta sessão.
-            </p>
-          )}
-          {recentes.length > 0 && (
-            <div className="overflow-auto">
-              <table className="min-w-full text-sm text-slate-200">
-                <thead className="bg-slate-900/40">
-                  <tr>
-                    <th className="text-left px-3 py-2">Data/Hora</th>
-                    <th className="text-right px-3 py-2">Produto ID</th>
-                    <th className="text-left px-3 py-2">Tipo</th>
-                    <th className="text-right px-3 py-2">Quantidade</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentes.map((m, idx) => (
-                    <tr
-                      key={`${m.produtoId}-${m.dataHora}-${idx}`}
-                      className="border-t border-slate-700/50"
-                    >
-                      <td className="px-3 py-2">
-                        {new Date(m.dataHora).toLocaleString("pt-BR", {
-                          dateStyle: "short",
-                          timeStyle: "short",
-                        })}
-                      </td>
-                      <td className="px-3 py-2 text-right">#{m.produtoId}</td>
-                      <td className="px-3 py-2">
-                        {m.tipo === "ENTRADA" ? "Entrada" : "Saída"}
-                      </td>
-                      <td className="px-3 py-2 text-right">{m.quantidade}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
