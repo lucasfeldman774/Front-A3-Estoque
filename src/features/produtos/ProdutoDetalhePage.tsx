@@ -88,7 +88,9 @@ export function ProdutoDetalhePage() {
         </div>
         {excluirMut.error && (
           <p className="text-sm text-red-400 bg-red-900/20 border border-red-500/40 rounded p-2">
-            {String(excluirMut.error)}
+            {((excluirMut.error as any)?.response?.data?.erro as string) ??
+              (excluirMut.error as any)?.message ??
+              String(excluirMut.error)}
           </p>
         )}
       </div>

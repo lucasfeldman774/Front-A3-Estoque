@@ -5,6 +5,7 @@ import {
   abaixoMinimo,
   porCategoria,
 } from "./relatorioService";
+import { listarProdutos } from "../produtos/produtoService";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -31,6 +32,12 @@ export function RelatoriosPage() {
   const qCategoria = useQuery({
     queryKey: ["relatorios", "por-categoria"],
     queryFn: porCategoria,
+    enabled: aba === "por-categoria",
+  });
+
+  const qProdutos = useQuery({
+    queryKey: ["relatorios", "produtos"],
+    queryFn: listarProdutos,
     enabled: aba === "por-categoria",
   });
 
@@ -354,24 +361,64 @@ export function RelatoriosPage() {
             )}
             {!qCategoria.isLoading && !qCategoria.error && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(qCategoria.data ?? []).map((c: any) => (
-                  <div
-                    key={c.id ?? c.nome}
-                    className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-4"
-                  >
-                    <div className="text-white font-semibold">
-                      {c.nome ?? c.categoria}
-                    </div>
-                    <div className="text-sm text-gray-400 mt-1">
-                      Produtos: {c.totalProdutos ?? c.count}
-                    </div>
-                    {c.valorTotal !== undefined && (
-                      <div className="text-sm text-gray-400">
-                        Valor total: R$ {Number(c.valorTotal).toFixed(2)}
+                {(() => {
+                  const produtos = qProdutos.data ?? [];
+                  const counts: Record<string, number> = produtos.reduce(
+                    (acc: Record<string, number>, p: any) => {
+                      const cat = p?.categoria?.nome ?? p?.categoria;
+                      if (!cat) return acc;
+                      acc[cat] = (acc[cat] ?? 0) + 1;
+                      return acc;
+                    },
+                    {}
+                  );
+
+                  const categorias =
+                    (qCategoria.data ?? []).length > 0
+                      ? qCategoria.data
+                      : Object.keys(counts).map((nome) => ({ nome }));
+
+                  return categorias.map((c: any) => {
+                    const nome = c?.nome ?? c?.categoria;
+                    const arr =
+                      c?.produtos ?? c?.items ?? c?.itens ?? c?.products;
+                    const distinctFromArr = Array.isArray(arr)
+                      ? new Set(
+                          arr.map(
+                            (p: any) => p?.id ?? p?.nome ?? JSON.stringify(p)
+                          )
+                        ).size
+                      : undefined;
+                    const qtd = Number(
+                      c?.totalProdutos ??
+                        c?.count ??
+                        c?.quantidadeProdutos ??
+                        c?.quantidade ??
+                        c?.distintos ??
+                        c?.produtosDistintos ??
+                        c?.uniqueCount ??
+                        c?.total_distintos ??
+                        distinctFromArr ??
+                        (nome ? counts[nome] ?? 0 : 0)
+                    );
+                    return (
+                      <div
+                        key={c.id ?? nome}
+                        className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-4"
+                      >
+                        <div className="text-white font-semibold">{nome}</div>
+                        <div className="text-sm text-gray-400 mt-1">
+                          Produtos distintos: {qtd}
+                        </div>
+                        {c.valorTotal !== undefined && (
+                          <div className="text-sm text-gray-400">
+                            Valor total: R$ {Number(c.valorTotal).toFixed(2)}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>
