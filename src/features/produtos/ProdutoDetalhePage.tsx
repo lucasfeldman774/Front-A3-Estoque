@@ -21,13 +21,38 @@ export function ProdutoDetalhePage() {
   });
 
   const [nome, setNome] = useState("");
+  const [precoUnitarioStr, setPrecoUnitarioStr] = useState<string>("");
+  const [precoUnitario, setPrecoUnitario] = useState<number>(0);
+  const [quantidadeMinima, setQuantidadeMinima] = useState<number>(0);
+  const [quantidadeMaxima, setQuantidadeMaxima] = useState<number>(0);
 
   useEffect(() => {
-    if (data) setNome(data.nome);
+    if (data) {
+      setNome(data.nome);
+      const preco = Number(data.precoUnitario) || 0;
+      setPrecoUnitario(preco);
+      setPrecoUnitarioStr(
+        preco.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      );
+      setQuantidadeMinima(Number(data.quantidadeMinima) || 0);
+      setQuantidadeMaxima(Number(data.quantidadeMaxima) || 0);
+    }
   }, [data]);
 
   const salvarMut = useMutation({
-    mutationFn: () => atualizarProduto(produtoId, { ...data!, nome }),
+    mutationFn: () =>
+      atualizarProduto(produtoId, {
+        nome,
+        precoUnitario,
+        unidade: data!.unidade,
+        quantidade: data!.quantidade,
+        quantidadeMinima,
+        quantidadeMaxima,
+        categoria: data!.categoria,
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["produto", produtoId] }),
   });
 
@@ -60,16 +85,77 @@ export function ProdutoDetalhePage() {
 
       <div className="space-y-2">
         <h3 className="text-lg font-semibold">Editar</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">Nome</label>
+            <input
+              className="input"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">
+              Preço Unitário (R$)
+            </label>
+            <input
+              className="input"
+              type="text"
+              inputMode="decimal"
+              placeholder="0,00"
+              value={precoUnitarioStr}
+              onChange={(e) => {
+                const v = e.target.value;
+                const normalized = v
+                  .replace(/[^\d,\.]/g, "")
+                  .replace(/\./g, "")
+                  .replace(",", ".");
+                const n = parseFloat(normalized);
+                setPrecoUnitarioStr(v);
+                setPrecoUnitario(isNaN(n) ? 0 : n);
+              }}
+              onBlur={() =>
+                setPrecoUnitarioStr(
+                  precoUnitario.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })
+                )
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">
+              Quantidade Mínima
+            </label>
+            <input
+              className="input"
+              type="number"
+              min="0"
+              step={1}
+              value={quantidadeMinima}
+              onChange={(e) => setQuantidadeMinima(Number(e.target.value))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-300 mb-1">
+              Quantidade Máxima
+            </label>
+            <input
+              className="input"
+              type="number"
+              min="0"
+              step={1}
+              value={quantidadeMaxima}
+              onChange={(e) => setQuantidadeMaxima(Number(e.target.value))}
+            />
+          </div>
+        </div>
         <div className="flex items-center gap-2">
-          <input
-            className="input"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-          />
           <button
             className="btn"
             onClick={() => salvarMut.mutate()}
-            disabled={salvarMut.isPending}
+            disabled={salvarMut.isPending || !nome.trim() || precoUnitario <= 0}
           >
             Salvar
           </button>
