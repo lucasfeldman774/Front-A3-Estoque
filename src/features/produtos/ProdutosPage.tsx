@@ -2,11 +2,20 @@ import React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listarProdutos, criarProduto } from "./produtoService";
 import type { Produto, Categoria } from "../../types/domain";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { listarCategorias } from "../categorias/categoriaService";
 
 export function ProdutosPage() {
   const qc = useQueryClient();
+  const location = useLocation();
+  const [sucessoMsg, setSucessoMsg] = React.useState<string | null>(
+    (location.state as any)?.success ?? null
+  );
+  React.useEffect(() => {
+    if (!sucessoMsg) return;
+    const t = setTimeout(() => setSucessoMsg(null), 4000);
+    return () => clearTimeout(t);
+  }, [sucessoMsg]);
   const { data, isLoading, error } = useQuery<Produto[]>({
     queryKey: ["produtos"],
     queryFn: listarProdutos,
@@ -48,7 +57,6 @@ export function ProdutosPage() {
     }
   }, [openModal, precoUnitario]);
 
-
   const criarMut = useMutation({
     mutationFn: async () => {
       const categoria = qCategorias.data?.find((c) => c.id === categoriaId);
@@ -74,6 +82,7 @@ export function ProdutosPage() {
       setQuantidadeMinima(0);
       setQuantidadeMaxima(0);
       setCategoriaId(null);
+      setSucessoMsg("Produto cadastrado com sucesso");
       qc.invalidateQueries({ queryKey: ["produtos"] });
     },
   });
@@ -97,6 +106,11 @@ export function ProdutosPage() {
         </div>
       </div>
 
+      {sucessoMsg && (
+        <div className="bg-emerald-900/20 border border-emerald-500/50 rounded-lg p-3 text-emerald-400">
+          {sucessoMsg}
+        </div>
+      )}
       {isLoading && <p className="text-gray-400">Carregando produtos...</p>}
       {error && (
         <p className="text-red-400 bg-red-900/20 p-3 rounded-lg">
@@ -115,7 +129,9 @@ export function ProdutosPage() {
                 <span className="font-semibold text-white text-lg">
                   {p.nome}
                 </span>
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 text-xs rounded-md border border-slate-600/50 text-gray-300 bg-slate-900/40">#{p.id}</span>
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 text-xs rounded-md border border-slate-600/50 text-gray-300 bg-slate-900/40">
+                  #{p.id}
+                </span>
                 <div className="flex gap-4 mt-1 text-sm">
                   <span className="text-emerald-400">
                     R$ {p.precoUnitario.toFixed(2)}

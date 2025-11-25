@@ -25,6 +25,13 @@ export function ProdutoDetalhePage() {
   const [precoUnitario, setPrecoUnitario] = useState<number>(0);
   const [quantidadeMinima, setQuantidadeMinima] = useState<number>(0);
   const [quantidadeMaxima, setQuantidadeMaxima] = useState<number>(0);
+  const [sucessoMsg, setSucessoMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!sucessoMsg) return;
+    const t = setTimeout(() => setSucessoMsg(null), 4000);
+    return () => clearTimeout(t);
+  }, [sucessoMsg]);
 
   useEffect(() => {
     if (data) {
@@ -53,12 +60,18 @@ export function ProdutoDetalhePage() {
         quantidadeMaxima,
         categoria: data!.categoria,
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["produto", produtoId] }),
+    onSuccess: () => {
+      setSucessoMsg("Produto editado com sucesso");
+      qc.invalidateQueries({ queryKey: ["produto", produtoId] });
+    },
   });
 
   const excluirMut = useMutation({
     mutationFn: () => excluirProduto(produtoId),
-    onSuccess: () => navigate("/produtos"),
+    onSuccess: () =>
+      navigate("/produtos", {
+        state: { success: "Produto excluído com sucesso" },
+      }),
     onError: () => {},
   });
 
@@ -168,6 +181,11 @@ export function ProdutoDetalhePage() {
             Excluir
           </button>
         </div>
+        {sucessoMsg && (
+          <p className="text-sm text-emerald-400 bg-emerald-900/20 border border-emerald-500/40 rounded p-2">
+            {sucessoMsg}
+          </p>
+        )}
         {excluirMut.error && (
           <p className="text-sm text-red-400 bg-red-900/20 border border-red-500/40 rounded p-2">
             {((excluirMut.error as any)?.response?.data?.erro as string) ??

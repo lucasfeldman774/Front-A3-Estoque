@@ -6,7 +6,7 @@ import {
   excluirCategoria,
 } from "./categoriaService";
 import type { Categoria, Tamanho, Embalagem } from "../../types/domain";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function CategoriasPage() {
   const qc = useQueryClient();
@@ -23,6 +23,13 @@ export function CategoriasPage() {
   const [editNome, setEditNome] = useState("");
   const [editTamanho, setEditTamanho] = useState<Tamanho | "">("");
   const [editEmbalagem, setEditEmbalagem] = useState<Embalagem | "">("");
+  const [sucessoMsg, setSucessoMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!sucessoMsg) return;
+    const t = setTimeout(() => setSucessoMsg(null), 4000);
+    return () => clearTimeout(t);
+  }, [sucessoMsg]);
 
   const criarMut = useMutation({
     mutationFn: () =>
@@ -33,6 +40,7 @@ export function CategoriasPage() {
       }),
     onSuccess: () => {
       setNome("");
+      setSucessoMsg("Categoria criada com sucesso");
       qc.invalidateQueries({ queryKey: ["categorias"] });
     },
   });
@@ -46,13 +54,17 @@ export function CategoriasPage() {
       }),
     onSuccess: () => {
       setEditId(null);
+      setSucessoMsg("Categoria editada com sucesso");
       qc.invalidateQueries({ queryKey: ["categorias"] });
     },
   });
 
   const excluirMut = useMutation({
     mutationFn: (id: number) => excluirCategoria(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["categorias"] }),
+    onSuccess: () => {
+      setSucessoMsg("Categoria excluída com sucesso");
+      qc.invalidateQueries({ queryKey: ["categorias"] });
+    },
   });
 
   return (
@@ -175,6 +187,11 @@ export function CategoriasPage() {
                 ? "Não é possível excluir a categoria pois existem produtos vinculados."
                 : raw;
             })()}
+          </div>
+        )}
+        {sucessoMsg && (
+          <div className="mt-2 text-sm text-emerald-400 bg-emerald-900/20 border border-emerald-500/40 rounded p-2">
+            {sucessoMsg}
           </div>
         )}
       </div>
