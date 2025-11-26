@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   registrarMovimentacao as registrarMovimentacaoApi,
@@ -11,6 +11,7 @@ export function MovimentacoesPage() {
   const [produtoId, setProdutoId] = useState<number>(0);
   const [quantidade, setQuantidade] = useState<number>(0);
   const [tipo, setTipo] = useState<TipoMovimentacao>("ENTRADA");
+  const [aviso, setAviso] = useState<string | null>(null);
 
   const { data: top, isLoading: topLoading } = useQuery({
     queryKey: ["top-mov"],
@@ -19,11 +20,18 @@ export function MovimentacoesPage() {
 
   const registrarMut = useMutation({
     mutationFn: () => registrarMovimentacaoApi({ produtoId, quantidade, tipo }),
-    onSuccess: () => {
+    onSuccess: (resp: any) => {
       setProdutoId(0);
       setQuantidade(0);
+      setAviso(resp?.aviso ?? null);
     },
   });
+
+  useEffect(() => {
+    if (!aviso) return;
+    const t = setTimeout(() => setAviso(null), 4000);
+    return () => clearTimeout(t);
+  }, [aviso]);
 
   const handleSubmit = () => {
     if (produtoId > 0 && quantidade > 0) {
@@ -117,6 +125,13 @@ export function MovimentacoesPage() {
               <p className="text-emerald-400 font-medium">
                 ✓ Movimentação registrada com sucesso!
               </p>
+            </div>
+          )}
+
+          {/* Aviso de Limites */}
+          {aviso && (
+            <div className="bg-orange-900/20 border border-orange-500/50 rounded-lg p-4">
+              <p className="text-orange-400 font-medium">{aviso}</p>
             </div>
           )}
 
