@@ -329,12 +329,18 @@ export function RelatoriosPage() {
                       Estoque: {p.quantidade} • Mín: {p.quantidadeMinima}
                     </div>
                     <div className="mt-2">
-                      <Link
-                        to={`/produtos/${p.id}`}
-                        className="inline-block px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs transition-colors"
-                      >
-                        Ver produto →
-                      </Link>
+                      {(() => {
+                        const pid = p?.id ?? p?.produtoId ?? p?.produto?.id;
+                        const href = pid ? `/produtos/${pid}` : "/produtos";
+                        return (
+                          <Link
+                            to={href}
+                            className="inline-block px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs transition-colors"
+                          >
+                            Ver produto →
+                          </Link>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}
